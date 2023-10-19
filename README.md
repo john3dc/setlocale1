@@ -1,6 +1,6 @@
 # setlocal1
 
-Easily set language and keymaps in Alpine Linux, and potentially other distros as well.
+Easily set language and X-keymaps in Alpine Linux, and potentially other distros as well.
 
 Tested on Gnome, Plasma, XFCE, Gnome Desktop Manager, and SDDM.
 Compatible with both X11 and Wayland.
