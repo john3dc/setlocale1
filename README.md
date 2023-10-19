@@ -1,4 +1,4 @@
-# setlocal1
+# setlocale1
 
 Easily set language and X-keymaps in Alpine Linux, and potentially other distros as well.
 
