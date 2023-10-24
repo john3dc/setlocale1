@@ -60,7 +60,7 @@ prompt_settings() {
     echo "              setlocale1"
     echo "-----------------------------------------"
     read -p "Enter your locale language (de_DE): " ANSW1
-    [ "$ANSW1" ] && $GDSTART.SetLocale "['LANG=$ANSW1']" false 2>&1 | grep -v "usr/sbin/env-update"
+    [ "$ANSW1" ] && echo "LANG=$ANSW1" > /etc/locale.conf && $GDSTART.SetLocale "['LANG=$ANSW1']" false 2>&1 | grep -v "usr/sbin/env-update"
     read -p "Enter your vconsole-kb-layout (de): " ANSW2
     [ "$ANSW2" ] && $GDSTART.SetVConsoleKeyboard "$ANSW2" "" false false 2>&1 | grep -Ev '^..$'
     read -p "Enter your x-keyboard-layout  (de): " ANSW3
@@ -79,7 +79,7 @@ ensure_keyboard_conf_exists
 while [ "$1" ]; do
     case "$1" in
         -h) show_help; exit 0 ;;
-        -l) shift; $GDSTART.SetLocale "['LANG=$1']" false 2>&1 | grep -v "usr/sbin/env-update"; echo "Restart your system to take effect."; shift ;;
+        -l) shift; echo "LANG=$ANSW1" > /etc/locale.conf && $GDSTART.SetLocale "['LANG=$1']" false 2>&1 | grep -v "usr/sbin/env-update"; echo "Restart your system to take effect."; shift ;;
         -v) shift; $GDSTART.SetVConsoleKeyboard "$1" "$2" false false 2>&1 | grep -Ev '^..$'; shift 2 ;;
         -x) shift; $GDSTART.SetX11Keyboard "$1" "$2" "$3" "$4" false false 2>&1 | grep -Ev '^..$'; shift 4 ;;
         -a) echo ""
