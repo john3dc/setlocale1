@@ -10,7 +10,7 @@ GDSTART="gdbus call --system --dest $METHOD --object-path $OBJPATH --method $MET
 
 ensure_permission() {
 	if [ "$(id -u)" -ne 0 ]; then
-	    echo "This script requires root privileges or should be executed with 'su'."
+	    echo "Please run as root"
 	    exit 1
 	fi
 }
@@ -22,6 +22,7 @@ ensure_openrc_settingsd_started() {
     read -p "Do you want to start the openrc-settingsd service (y/n)? " ANSW
     case "$ANSW" in
         y|yes) 
+            ensure_permission
             rc-update add openrc-settingsd boot
             rc-service openrc-settingsd start
             exit
@@ -33,6 +34,7 @@ ensure_openrc_settingsd_started() {
 ensure_keyboard_conf_exists() {
     local conf_path="/etc/X11/xorg.conf.d/30-keyboard.conf"
     [ -f "$conf_path" ] && return
+    ensure_permission
     mkdir -p "/etc/X11/xorg.conf.d/" 2>/dev/null
     touch "$conf_path" 2>/dev/null
     [ -f "$conf_path" ] || { echo "Error: file access to '$conf_path'"; exit 1; }
@@ -56,13 +58,14 @@ EOH
 }
 
 prompt_settings() {
+    ensure_permission
     echo ""
     echo "              setlocale1"
     echo "-----------------------------------------"
     read -p "Enter your locale language (de_DE): " ANSW1
     [ "$ANSW1" ] && echo "LANG=$ANSW1" > /etc/locale.conf && $GDSTART.SetLocale "['LANG=$ANSW1']" false 2>&1 | grep -v "usr/sbin/env-update"
     read -p "Enter your vconsole-kb-layout (de): " ANSW2
-    [ "$ANSW2" ] && $GDSTART.SetVConsoleKeyboard "$ANSW2" "" false false 2>&1 | grep -Ev '^..$'
+    [ "$ANSW2" ] && echo "KEYMAP=$ANSW2" > /etc/vconsole.conf && $GDSTART.SetVConsoleKeyboard "$ANSW2" "" false false 2>&1 | grep -Ev '^..$'
     read -p "Enter your x-keyboard-layout  (de): " ANSW3
     [ "$ANSW3" ] && $GDSTART.SetX11Keyboard "$ANSW3" "" "" "" false false 2>&1 | grep -Ev '^..$'
     echo "-----------------------------------------"
@@ -70,7 +73,6 @@ prompt_settings() {
     echo ""
 }
 
-ensure_permission
 ensure_openrc_settingsd_started
 ensure_keyboard_conf_exists
 
@@ -79,9 +81,9 @@ ensure_keyboard_conf_exists
 while [ "$1" ]; do
     case "$1" in
         -h) show_help; exit 0 ;;
-        -l) shift; echo "LANG=$ANSW1" > /etc/locale.conf && $GDSTART.SetLocale "['LANG=$1']" false 2>&1 | grep -v "usr/sbin/env-update"; echo "Restart your system to take effect."; shift ;;
-        -v) shift; $GDSTART.SetVConsoleKeyboard "$1" "$2" false false 2>&1 | grep -Ev '^..$'; shift 2 ;;
-        -x) shift; $GDSTART.SetX11Keyboard "$1" "$2" "$3" "$4" false false 2>&1 | grep -Ev '^..$'; shift 4 ;;
+        -l) shift; ensure_permission && echo "LANG=$1" > /etc/locale.conf && $GDSTART.SetLocale "['LANG=$1']" false 2>&1 | grep -v "usr/sbin/env-update"; echo "Restart your system to take effect."; shift ;;
+        -v) shift; ensure_permission && echo "KEYMAP=$1" > /etc/vconsole.conf && $GDSTART.SetVConsoleKeyboard "$1" "$2" false false 2>&1 | grep -Ev '^..$'; shift 2 ;;
+        -x) shift; ensure_permission && $GDSTART.SetX11Keyboard "$1" "$2" "$3" "$4" false false 2>&1 | grep -Ev '^..$'; shift 4 ;;
         -a) echo ""
             echo " Current Locale Properties:"
             echo "---------------------------"
